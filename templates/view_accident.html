@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+
+{% block content %}
+<head>
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+    <style>
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 비율 */
+            background: #000;
+            margin-bottom: 1rem;
+        }
+        .video-container video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .plyr--video {
+            height: 100%;
+        }
+        .plyr--full-ui input[type=range] {
+            color: #fff;
+        }
+        .plyr__control--overlaid {
+            background: rgba(255, 255, 255, 0.9);
+        }
+        .plyr__control--overlaid:hover {
+            background: #fff;
+        }
+        .plyr--video .plyr__control.plyr__tab-focus,
+        .plyr--video .plyr__control:hover,
+        .plyr--video .plyr__control[aria-expanded=true] {
+            background: #fff;
+        }
+        .video-actions {
+            margin-top: 0.5rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .download-btn:hover {
+            background-color: #0056b3;
+            color: white;
+            text-decoration: none;
+        }
+        .download-btn i {
+            font-size: 1.1rem;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<h1 class="h4 mb-3">사고 상세 정보</h1>
+<div class="card">
+    <div class="card-body p-3">
+        <div class="row mb-2">
+            <div class="col-12">
+                <h5 class="card-title d-inline">사고번호: <span class="accident-id">{{ accident['사고번호'] }}</span></h5>
+            </div>
+        </div>
+
+        <h6 class="card-subtitle mb-2 text-muted">기본 정보</h6>
+        <div class="row">
+            <div class="col-md-6">
+                <p class="mb-1"><strong>차량번호:</strong> {{ accident['차량번호'] }}</p>
+                <p class="mb-1"><strong>성명:</strong> {{ accident['성명'] }}</p>
+                <p class="mb-1"><strong>생년월일:</strong> {{ accident['생년월일'] }}</p>
+                <p class="mb-1"><strong>사원번호:</strong> {{ accident['사원번호'] }}</p>
+                <p class="mb-1"><strong>운전면허번호:</strong> {{ accident['운전면허번호'] }}</p>
+                <p class="mb-1"><strong>구분:</strong> {{ accident['구분'] }}</p>
+            </div>
+            <div class="col-md-6">
+                <p class="mb-1"><strong>나이:</strong> {{ accident['나이'] }}</p>
+                <p class="mb-1"><strong>연락처:</strong> {{ accident['연락처'] }}</p>
+                <p class="mb-1"><strong>운전경력:</strong> {{ accident['운전경력'] }}</p>
+                <p class="mb-1"><strong>당사경력:</strong> {{ accident['당사경력'] }}</p>
+                <p class="mb-1"><strong>주소:</strong> {{ accident['주소'] }}</p>
+            </div>
+        </div>
+
+        <h6 class="card-subtitle mb-2 text-muted mt-3">사고 정보</h6>
+        <div class="row">
+            <div class="col-md-6">
+                <p class="mb-1"><strong>사고일시:</strong> {{ accident['사고일시'] }}</p>
+                <p class="mb-1"><strong>사고유형:</strong> {{ accident['사고유형'] }}</p>
+                <p class="mb-1"><strong>사고장소:</strong> {{ accident['사고장소'] }}</p>
+                <p class="mb-1"><strong>사고발생시속도:</strong> {{ accident['사고발생시속도'] }}</p>
+                <p class="mb-1"><strong>날씨:</strong> {{ accident['날씨'] }}</p>
+            </div>
+            <div class="col-md-6">
+                <p class="mb-1"><strong>경찰서:</strong> {{ accident['경찰서'] }}</p>
+                <p class="mb-1"><strong>조사관성명:</strong> {{ accident['조사관성명'] }}</p>
+                <p class="mb-1"><strong>경찰서 전화:</strong> {{ accident['전화'] }}</p>
+                <p class="mb-1"><strong>경찰서 휴대폰:</strong> {{ accident['휴대폰'] }}</p>
+            </div>
+        </div>
+
+        <h6 class="card-subtitle mb-2 text-muted mt-3">보험 정보</h6>
+        <div class="row">
+            <div class="col-md-6">
+                <p class="mb-1"><strong>차량파손부위:</strong> {{ accident['차량파손부위'] }}</p>
+                <p class="mb-1"><strong>출동보험기사:</strong> {{ accident['출동보험기사'] }}</p>
+                <p class="mb-1"><strong>보험회사:</strong> {{ accident['보험회사'] }}</p>
+                <p class="mb-1"><strong>보험접수번호:</strong> {{ accident['보험접수번호'] }}</p>
+            </div>
+            <div class="col-md-6">
+                <p class="mb-1"><strong>보험상담자:</strong> {{ accident['보험상담자'] }}</p>
+                <p class="mb-1"><strong>대물담당:</strong> {{ accident['대물담당'] }}</p>
+                <p class="mb-1"><strong>대인담당:</strong> {{ accident['대인담당'] }}</p>
+                <p class="mb-1"><strong>운전자상해:</strong> {{ accident['운전자상해'] }}</p>
+                <p class="mb-1"><strong>치료병원:</strong> {{ accident['치료병원'] }}</p>
+            </div>
+        </div>
+
+        <h6 class="card-subtitle mb-2 text-muted mt-3">상대차량 정보</h6>
+        {% for i in range(1, 4) %}
+        <div class="row mb-2">
+            <div class="col-12">
+                <h6 class="mb-2">상대차량 {{ i }}</h6>
+                <div class="row">
+                    <div class="col-md-4">
+                        <p class="mb-1"><strong>차량번호:</strong> {{ accident['상대차량번호' + i|string] }}</p>
+                        <p class="mb-1"><strong>성명:</strong> {{ accident['상대차량성명' + i|string] }}</p>
+                        <p class="mb-1"><strong>연락처:</strong> {{ accident['상대차량연락처' + i|string] }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="mb-1"><strong>차종:</strong> {{ accident['상대차량차종' + i|string] }}</p>
+                        <p class="mb-1"><strong>남여구분:</strong> {{ accident['상대차량남여' + i|string] }}</p>
+                        <p class="mb-1"><strong>비고:</strong> {{ accident['상대차량비고' + i|string] }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <h6 class="card-subtitle mb-2 text-muted mt-3">상해승객 정보</h6>
+        {% for i in range(1, 4) %}
+        <div class="row mb-2">
+            <div class="col-12">
+                <h6 class="mb-2">상해승객 {{ i }}</h6>
+                <div class="row">
+                    <div class="col-md-4">
+                        <p class="mb-1"><strong>성명:</strong> {{ accident['상해승객성명' + i|string] }}</p>
+                        <p class="mb-1"><strong>연락처:</strong> {{ accident['상해승객연락처' + i|string] }}</p>
+                        <p class="mb-1"><strong>병원:</strong> {{ accident['상해승객병원' + i|string] }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="mb-1"><strong>나이:</strong> {{ accident['상해승객나이' + i|string] }}</p>
+                        <p class="mb-1"><strong>남여구분:</strong> {{ accident['상해승객남여' + i|string] }}</p>
+                        <p class="mb-1"><strong>비고:</strong> {{ accident['상해승객비고' + i|string] }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- 이미지 및 비디오 섹션 추가 -->
+        {% if image_files or video_files %}
+        <h6 class="card-subtitle mb-2 text-muted mt-3">사고 관련 파일</h6>
+        
+        {% if image_files %}
+        <div class="mb-3">
+            <h6 class="mb-2">사고 차량 사진</h6>
+            <div class="row">
+                {% for image in image_files %}
+                <div class="col-md-4 mb-2">
+                    <a href="{{ url_for('uploaded_file', file_type='images', filename=image) }}" target="_blank">
+                        <img src="{{ url_for('uploaded_file', file_type='images', filename=image) }}" 
+                             class="img-fluid rounded" alt="사고 차량 사진">
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if video_files %}
+        <div class="mb-3">
+            <h6 class="mb-2">사고 동영상</h6>
+            <div class="row">
+                {% for video in video_files %}
+                <div class="col-md-6 mb-2">
+                    <div class="video-container">
+                        <video
+                            id="video-{{ loop.index }}"
+                            class="plyr-video"
+                            playsinline
+                            controls
+                            crossorigin
+                            preload="metadata"
+                        >
+                            <source src="{{ url_for('uploaded_file', file_type='videos', filename=video) }}" type="video/mp4">
+                            <source src="{{ url_for('uploaded_file', file_type='videos', filename=video) }}" type="video/x-msvideo">
+                            <source src="{{ url_for('uploaded_file', file_type='videos', filename=video) }}" type="video/avi">
+                            <p class="vjs-no-js">
+                                비디오를 보려면 JavaScript를 활성화하세요.
+                            </p>
+                        </video>
+                    </div>
+                    <div class="video-actions">
+                        <a href="{{ url_for('download_file', file_type='videos', filename=video) }}" class="download-btn">
+                            <i class="fas fa-download"></i>
+                            <span>동영상 다운로드</span>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<div class="mt-2">
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">목록으로</a>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 모든 비디오 플레이어 초기화
+    const players = Array.from(document.querySelectorAll('.plyr-video')).map(video => {
+        try {
+            const player = new Plyr(video, {
+                controls: [
+                    'play-large',
+                    'play',
+                    'progress',
+                    'current-time',
+                    'mute',
+                    'volume',
+                    'captions',
+                    'settings',
+                    'pip',
+                    'airplay',
+                    'fullscreen'
+                ],
+                settings: ['captions', 'quality', 'speed'],
+                quality: {
+                    default: 720,
+                    options: [4320, 2880, 2160, 1440, 1080, 720, 576, 480, 360, 240]
+                },
+                speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
+                tooltips: { controls: true, seek: true },
+                keyboard: { focused: true, global: true },
+                fullscreen: { enabled: true, iosNative: true },
+                loadSprite: true,
+                iconUrl: 'https://cdn.plyr.io/3.7.8/plyr.svg',
+                blankVideo: 'https://cdn.plyr.io/static/blank.mp4'
+            });
+
+            // 에러 처리
+            player.on('error', event => {
+                console.error('비디오 로딩 에러:', event.detail);
+                // 기본 HTML5 플레이어로 폴백
+                const videoElement = video;
+                if (videoElement) {
+                    videoElement.controls = true;
+                    videoElement.classList.remove('plyr-video');
+                }
+            });
+
+            // 메타데이터 로드 확인
+            player.on('loadedmetadata', () => {
+                console.log('비디오 메타데이터 로드됨');
+            });
+
+            return player;
+        } catch (error) {
+            console.error('플레이어 초기화 에러:', error);
+            // 기본 HTML5 플레이어로 폴백
+            video.controls = true;
+            video.classList.remove('plyr-video');
+            return null;
+        }
+    });
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>날짜별 사고 분석</h2>
+    <a href="{{ url_for('analysis') }}" class="btn btn-secondary mb-4">← 분석 메인으로</a>
+
+    {% if data %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>사고일자</th>
+                    <th>사고건수</th>
+                    <th>사고유형 분포</th>
+                    <th>차량 분포</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in data %}
+                <tr>
+                    <td>{{ item['사고일자'] }}</td>
+                    <td>{{ item['사고건수'] }}</td>
+                    <td>
+                        <ul class="list-unstyled">
+                            {% for type, count in item['사고유형분포'].items() %}
+                            <li>{{ type }}: {{ count }}건</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    <td>
+                        <ul class="list-unstyled">
+                            {% for vehicle, count in item['차량분포'].items() %}
+                            <li>{{ vehicle }}: {{ count }}건</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        분석할 데이터가 없습니다.
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

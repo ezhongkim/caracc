@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">사고 분석</h1>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title mb-3">검색 조건</h5>
+        <form method="GET" action="{{ url_for('analysis') }}" class="row g-3">
+            <div class="col-md-3">
+                <label for="start_date" class="form-label">시작일</label>
+                <input type="date" class="form-control" id="start_date" name="start_date" 
+                       value="{{ request.args.get('start_date', '2021-01-01') }}">
+            </div>
+            <div class="col-md-3">
+                <label for="end_date" class="form-label">종료일</label>
+                <input type="date" class="form-control" id="end_date" name="end_date"
+                       value="{{ request.args.get('end_date', now.strftime('%Y-%m-%d')) }}">
+            </div>
+            <div class="col-md-3">
+                <label for="car_number" class="form-label">차량번호</label>
+                <input type="text" class="form-control" id="car_number" name="car_number"
+                       value="{{ request.args.get('car_number', '') }}" placeholder="예: 12가3456">
+            </div>
+            <div class="col-md-3">
+                <label for="name" class="form-label">성명</label>
+                <input type="text" class="form-control" id="name" name="name"
+                       value="{{ request.args.get('name', '') }}" placeholder="예: 홍길동">
+            </div>
+            <div class="col-md-3">
+                <label for="employee_number" class="form-label">사원번호</label>
+                <input type="text" class="form-control" id="employee_number" name="employee_number"
+                       value="{{ request.args.get('employee_number', '') }}" placeholder="예: 12345">
+            </div>
+            <div class="col-md-3">
+                <label for="accident_type" class="form-label">사고유형</label>
+                <select class="form-select" id="accident_type" name="accident_type">
+                    <option value="">전체</option>
+                    <option value="피해" {% if request.args.get('accident_type') == '피해' %}selected{% endif %}>피해</option>
+                    <option value="가해" {% if request.args.get('accident_type') == '가해' %}selected{% endif %}>가해</option>
+                    <option value="단독" {% if request.args.get('accident_type') == '단독' %}selected{% endif %}>단독</option>
+                    <option value="인사" {% if request.args.get('accident_type') == '인사' %}selected{% endif %}>인사</option>
+                    <option value="기타" {% if request.args.get('accident_type') == '기타' %}selected{% endif %}>기타</option>
+                    <option value="PM" {% if request.args.get('accident_type') == 'PM' %}selected{% endif %}>PM</option>
+                    <option value="쌍방" {% if request.args.get('accident_type') == '쌍방' %}selected{% endif %}>쌍방</option>
+                    <option value="각자처리" {% if request.args.get('accident_type') == '각자처리' %}selected{% endif %}>각자처리</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="classification" class="form-label">구분</label>
+                <input type="text" class="form-control" id="classification" name="classification"
+                       value="{{ request.args.get('classification', '') }}" placeholder="예: 교차로, 전방주시, 끼어들기, 우회전 등">
+            </div>
+            <div class="col-md-3">
+                <label for="weather" class="form-label">날씨</label>
+                <select class="form-select" id="weather" name="weather">
+                    <option value="">전체</option>
+                    <option value="맑음" {% if request.args.get('weather') == '맑음' %}selected{% endif %}>맑음</option>
+                    <option value="흐림" {% if request.args.get('weather') == '흐림' %}selected{% endif %}>흐림</option>
+                    <option value="비" {% if request.args.get('weather') == '비' %}selected{% endif %}>비</option>
+                    <option value="눈" {% if request.args.get('weather') == '눈' %}selected{% endif %}>눈</option>
+                </select>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> 검색
+                </button>
+                <a href="{{ url_for('analysis') }}" class="btn btn-secondary">
+                    <i class="fas fa-redo"></i> 초기화
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if request.query_string %}
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title mb-3">검색 결과 요약</h5>
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">전체 사고 건수</h6>
+                        <p class="card-text h4">{{ total_accidents }}건</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">가해 사고</h6>
+                        <p class="card-text h4">{{ accident_types.get('가해', 0) }}건</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">피해 사고</h6>
+                        <p class="card-text h4">{{ accident_types.get('피해', 0) }}건</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">단독 사고</h6>
+                        <p class="card-text h4">{{ accident_types.get('단독', 0) }}건</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title mb-3">상세 분석</h5>
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">사고유형 분포</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>사고유형</th>
+                                        <th>건수</th>
+                                        <th>비율</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for type, count in accident_types.items() %}
+                                    <tr>
+                                        <td>{{ type }}</td>
+                                        <td>{{ count }}건</td>
+                                        <td>{{ "%.1f"|format(count / total_accidents * 100) }}%</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">구분별 분포</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>구분</th>
+                                        <th>건수</th>
+                                        <th>비율</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for classification, count in classifications.items() %}
+                                    <tr>
+                                        <td>{{ classification }}</td>
+                                        <td>{{ count }}건</td>
+                                        <td>{{ "%.1f"|format(count / total_accidents * 100) }}%</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">날씨별 분포</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>날씨</th>
+                                        <th>건수</th>
+                                        <th>비율</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for weather, count in weathers.items() %}
+                                    <tr>
+                                        <td>{{ weather }}</td>
+                                        <td>{{ count }}건</td>
+                                        <td>{{ "%.1f"|format(count / total_accidents * 100) }}%</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted">월별 분포</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>월</th>
+                                        <th>건수</th>
+                                        <th>비율</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for month, count in monthly_stats.items() %}
+                                    <tr>
+                                        <td>{{ month }}월</td>
+                                        <td>{{ count }}건</td>
+                                        <td>{{ "%.1f"|format(count / total_accidents * 100) }}%</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">차량별 분석</h5>
+                <p class="card-text">차량번호별 사고 발생 현황을 분석합니다.</p>
+                <a href="{{ url_for('analysis_by_vehicle') }}{% if request.query_string %}?{{ request.query_string }}{% endif %}" class="btn btn-primary">
+                    <i class="fas fa-car"></i> 차량별 분석 보기
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">성명별 분석</h5>
+                <p class="card-text">운전자별 사고 발생 현황을 분석합니다.</p>
+                <a href="{{ url_for('analysis_by_name') }}{% if request.query_string %}?{{ request.query_string }}{% endif %}" class="btn btn-primary">
+                    <i class="fas fa-user"></i> 성명별 분석 보기
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">날짜별 분석</h5>
+                <p class="card-text">날짜별 사고 발생 현황을 분석합니다.</p>
+                <a href="{{ url_for('analysis_by_date') }}{% if request.query_string %}?{{ request.query_string }}{% endif %}" class="btn btn-primary">
+                    <i class="fas fa-calendar"></i> 날짜별 분석 보기
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">사원번호별 분석</h5>
+                <p class="card-text">사원번호별 사고 발생 현황을 분석합니다.</p>
+                <a href="{{ url_for('analysis_by_employee') }}{% if request.query_string %}?{{ request.query_string }}{% endif %}" class="btn btn-primary">
+                    <i class="fas fa-id-card"></i> 사원번호별 분석 보기
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

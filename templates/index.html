@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">사고 목록</h1>
+    <a href="{{ url_for('new_accident') }}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> 새 사고 등록
+    </a>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>사고번호</th>
+                        <th>사고일시</th>
+                        <th>차량번호</th>
+                        <th>성명</th>
+                        <th>구분</th>
+                        <th>사고유형</th>
+                        <th>날씨</th>
+                        <th>관리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for accident in accidents %}
+                    <tr>
+                        <td>{{ accident['사고번호'] }}</td>
+                        <td>{{ accident['사고일시'] }}</td>
+                        <td>{{ accident['차량번호'] }}</td>
+                        <td>{{ accident['성명'] }}</td>
+                        <td>{{ accident['구분'] }}</td>
+                        <td>{{ accident['사고유형'] }}</td>
+                        <td>{{ accident['날씨'] }}</td>
+                        <td>
+                            <a href="{{ url_for('view_accident', accident_id=accident['사고번호']) }}" class="btn btn-sm btn-info">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{{ url_for('edit_accident', accident_id=accident['사고번호']) }}" class="btn btn-sm btn-warning">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{{ url_for('delete_accident_route', accident_id=accident['사고번호']) }}" class="btn btn-sm btn-danger" onclick="return confirm('정말 삭제하시겠습니까?')">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 삭제 확인 모달 -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">사고 삭제 확인</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                정말로 이 사고를 삭제하시겠습니까?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">삭제</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDelete(accidentId) {
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    const form = document.getElementById('deleteForm');
+    form.action = `/accident/${accidentId}/delete`;
+    modal.show();
+}
+</script>
+{% endblock %} 

@@ -1,0 +1,470 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>새 사고 등록</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .required::after {
+            content: " *";
+            color: red;
+        }
+        .required-field {
+            border-color: #dc3545;
+        }
+    </style>
+    <script>
+        function handleSubmit(form) {
+            // 필수 입력 필드 검증
+            const requiredFields = {
+                'car_number': '차량번호',
+                'name': '성명',
+                'accident_date': '사고일시',
+                'accident_category': '사고유형'
+            };
+
+            let isValid = true;
+            let firstInvalidField = null;
+
+            for (const [name, label] of Object.entries(requiredFields)) {
+                const field = form.querySelector(`[name="${name}"]`);
+                if (!field.value.trim()) {
+                    if (!firstInvalidField) {
+                        firstInvalidField = field;
+                    }
+                    field.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            }
+
+            if (!isValid) {
+                alert('필수 입력 항목을 모두 입력해주세요.');
+                if (firstInvalidField) {
+                    firstInvalidField.focus();
+                }
+                return false;
+            }
+
+            // 사고일시 형식 검증
+            const accidentDate = form.querySelector('[name="accident_date"]').value;
+            if (!/^\d{12}$/.test(accidentDate)) {
+                alert('사고일시는 12자리 숫자로 입력해주세요. (예: 202403151420)');
+                form.querySelector('[name="accident_date"]').focus();
+                return false;
+            }
+
+            // 중복 제출 방지
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 저장 중...';
+
+            return true;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('accidentForm');
+            
+            // 입력 필드 순서 정의
+            const fieldOrder = [
+                'car_number',      // 차량번호
+                'name',           // 성명
+                'employee_number', // 사원번호
+                'accident_type',   // 구분
+                'accident_category', // 사고유형
+                'accident_date',   // 사고일시
+                'birth_date',     // 출생연도
+                'license_number', // 운전면허번호
+                'age',           // 나이
+                'phone',         // 연락처
+                'driving_experience', // 운전경력
+                'company_experience', // 당사경력
+                'address',       // 주소
+                // 상대차량 1
+                'other_car_number1', 'other_car_name1', 'other_car_phone1',
+                'other_car_type1', 'other_car_gender1', 'other_car_note1',
+                // 상대차량 2
+                'other_car_number2', 'other_car_name2', 'other_car_phone2',
+                'other_car_type2', 'other_car_gender2', 'other_car_note2',
+                // 상대차량 3
+                'other_car_number3', 'other_car_name3', 'other_car_phone3',
+                'other_car_type3', 'other_car_gender3', 'other_car_note3',
+                // 상해승객 1
+                'injured_name1', 'injured_phone1', 'injured_hospital1',
+                'injured_age1', 'injured_gender1', 'injured_note1',
+                // 상해승객 2
+                'injured_name2', 'injured_phone2', 'injured_hospital2',
+                'injured_age2', 'injured_gender2', 'injured_note2',
+                // 상해승객 3
+                'injured_name3', 'injured_phone3', 'injured_hospital3',
+                'injured_age3', 'injured_gender3', 'injured_note3',
+                // 사고 정보
+                'accident_location', 'speed', 'weather',
+                // 경찰 정보
+                'police_station', 'investigator', 'police_phone', 'police_mobile',
+                // 보험 정보
+                'damage_parts', 'insurance_agent', 'insurance_company',
+                'insurance_number', 'insurance_consultant',
+                'property_handler', 'personal_handler',
+                // 상해 정보
+                'driver_injury', 'hospital'
+            ];
+
+            // 필수 입력 필드에 tabindex 속성 추가
+            const requiredFields = [
+                { name: 'car_number', tabindex: 1 },
+                { name: 'name', tabindex: 2 },
+                { name: 'accident_category', tabindex: 3 },
+                { name: 'accident_date', tabindex: 4 }
+            ];
+
+            requiredFields.forEach(field => {
+                const element = form.querySelector(`[name="${field.name}"]`);
+                if (element) {
+                    element.setAttribute('tabindex', field.tabindex);
+                    element.classList.add('required-field');
+                }
+            });
+
+            // 첫 번째 필수 입력 필드에 포커스
+            form.querySelector('input[name="car_number"]').focus();
+
+            // 모든 입력 필드에서 엔터키 이벤트 처리
+            form.querySelectorAll('input, select').forEach(element => {
+                element.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        
+                        // 현재 필드의 인덱스 찾기
+                        const currentIndex = fieldOrder.indexOf(this.name);
+                        if (currentIndex !== -1 && currentIndex < fieldOrder.length - 1) {
+                            // 다음 필드 찾기
+                            const nextFieldName = fieldOrder[currentIndex + 1];
+                            const nextField = form.querySelector(`[name="${nextFieldName}"]`);
+                            if (nextField) {
+                                nextField.focus();
+                            }
+                        }
+                    }
+                });
+            });
+
+            // Ctrl+S 단축키 이벤트 추가
+            document.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    if (handleSubmit(form)) {
+                        form.submit();
+                    }
+                }
+            });
+
+            // 필드 값이 변경될 때 is-invalid 클래스 제거
+            requiredFields.forEach(field => {
+                const element = form.querySelector(`[name="${field.name}"]`);
+                if (element) {
+                    element.addEventListener('input', function() {
+                        this.classList.remove('is-invalid');
+                    });
+                }
+            });
+
+            // 폼 리셋 시 버튼 상태 초기화
+            form.addEventListener('reset', function() {
+                const submitBtn = form.querySelector('button[type="submit"]');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '저장';
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1 class="h4 mb-0">새 사고 등록</h1>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('new_accident') }}" enctype="multipart/form-data" id="accidentForm" onsubmit="return handleSubmit(this)">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>기본 정보</h4>
+                            <div class="mb-3">
+                                <label class="form-label required">차량번호</label>
+                                <input type="text" class="form-control" name="car_number" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label required">성명</label>
+                                <input type="text" class="form-control" name="name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">사원번호</label>
+                                <input type="text" class="form-control" name="employee_number">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">구분</label>
+                                <input type="text" class="form-control" name="accident_type" placeholder="예: 교차로, 전방주시, 끼어들기, 우회전 등">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label required">사고유형</label>
+                                <select class="form-select" name="accident_category" required>
+                                    <option value="">선택하세요</option>
+                                    <option value="피해">피해</option>
+                                    <option value="가해">가해</option>
+                                    <option value="가피">가피</option>
+                                    <option value="단독">단독</option>
+                                    <option value="인사">인사</option>
+                                    <option value="기타">기타</option>
+                                    <option value="PM">PM</option>
+                                    <option value="쌍방">쌍방</option>
+                                    <option value="각자처리">각자처리</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label required">사고일시</label>
+                                <input type="text" class="form-control" name="accident_date" required 
+                                       pattern="\d{12}" maxlength="12" placeholder="예: 202403151420"
+                                       title="연월일시분을 12자리 숫자로 입력하세요 (예: 202403151420)">
+                                <div class="form-text">연월일시분을 12자리 숫자로 입력하세요 (예: 202403151420)</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">출생연도</label>
+                                <input type="date" class="form-control" name="birth_date">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">운전면허번호</label>
+                                <input type="text" class="form-control" name="license_number">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">나이</label>
+                                <input type="number" class="form-control" name="age">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">연락처</label>
+                                <input type="tel" class="form-control" name="phone">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">운전경력</label>
+                                <input type="text" class="form-control" name="driving_experience">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">당사경력</label>
+                                <input type="text" class="form-control" name="company_experience">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">주소</label>
+                                <input type="text" class="form-control" name="address">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>상대차량 정보</h4>
+                            {% for i in range(1, 4) %}
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    상대차량 {{ i }}
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <label class="form-label">차량번호</label>
+                                            <input type="text" class="form-control" name="other_car_number{{ i }}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">성명</label>
+                                            <input type="text" class="form-control" name="other_car_name{{ i }}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">연락처</label>
+                                            <input type="text" class="form-control" name="other_car_phone{{ i }}">
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-md-4">
+                                            <label class="form-label">차종</label>
+                                            <input type="text" class="form-control" name="other_car_type{{ i }}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">남여구분</label>
+                                            <select class="form-select" name="other_car_gender{{ i }}">
+                                                <option value="">선택</option>
+                                                <option value="남">남</option>
+                                                <option value="여">여</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">비고</label>
+                                            <input type="text" class="form-control" name="other_car_note{{ i }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h4>상해승객 정보</h4>
+                            {% for i in range(1, 4) %}
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    상해승객 {{ i }}
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <label class="form-label">성명</label>
+                                            <input type="text" class="form-control" name="injured_name{{ i }}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">연락처</label>
+                                            <input type="text" class="form-control" name="injured_phone{{ i }}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">병원</label>
+                                            <input type="text" class="form-control" name="injured_hospital{{ i }}">
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-md-4">
+                                            <label class="form-label">나이</label>
+                                            <input type="number" class="form-control" name="injured_age{{ i }}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">남여구분</label>
+                                            <select class="form-select" name="injured_gender{{ i }}">
+                                                <option value="">선택</option>
+                                                <option value="남">남</option>
+                                                <option value="여">여</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">비고</label>
+                                            <input type="text" class="form-control" name="injured_note{{ i }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <h4>사고 정보</h4>
+                            <div class="mb-3">
+                                <label class="form-label">사고장소</label>
+                                <input type="text" class="form-control" name="accident_location">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">사고발생시속도</label>
+                                <input type="number" class="form-control" name="speed">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">날씨</label>
+                                <select class="form-select" name="weather">
+                                    <option value="">선택하세요</option>
+                                    <option value="맑음">맑음</option>
+                                    <option value="흐림">흐림</option>
+                                    <option value="비">비</option>
+                                    <option value="눈">눈</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h4>경찰 정보</h4>
+                            <div class="mb-3">
+                                <label class="form-label">경찰서</label>
+                                <input type="text" class="form-control" name="police_station">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">조사관성명</label>
+                                <input type="text" class="form-control" name="investigator">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">전화</label>
+                                <input type="tel" class="form-control" name="police_phone">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">휴대폰</label>
+                                <input type="tel" class="form-control" name="police_mobile">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>보험 정보</h4>
+                            <div class="mb-3">
+                                <label class="form-label">차량파손부위</label>
+                                <input type="text" class="form-control" name="damage_parts">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">출동보험기사</label>
+                                <input type="text" class="form-control" name="insurance_agent">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">보험회사</label>
+                                <input type="text" class="form-control" name="insurance_company">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">보험접수번호</label>
+                                <input type="text" class="form-control" name="insurance_number">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">보험상담자</label>
+                                <input type="text" class="form-control" name="insurance_consultant">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">대물담당</label>
+                                <input type="text" class="form-control" name="property_handler">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">대인담당</label>
+                                <input type="text" class="form-control" name="personal_handler">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h4>상해 정보</h4>
+                            <div class="mb-3">
+                                <label class="form-label">운전자상해</label>
+                                <input type="text" class="form-control" name="driver_injury">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">치료병원</label>
+                                <input type="text" class="form-control" name="hospital">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>파일 업로드</h4>
+                            <div class="mb-3">
+                                <label class="form-label">사고 차량 사진</label>
+                                <input type="file" class="form-control" name="images" multiple accept="image/*">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">사고 동영상</label>
+                                <input type="file" class="form-control" name="videos" multiple accept="video/*">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <i class="fas fa-save"></i> 등록
+                            </button>
+                            <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> 취소
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+{% endblock %} 

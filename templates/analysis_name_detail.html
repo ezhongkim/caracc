@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ name }}님의 사고 상세 분석</h2>
+    <a href="{{ url_for('analysis_by_name') }}" class="btn btn-secondary mb-4">← 성명별 분석으로</a>
+
+    {% if accidents %}
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">전체 사고 건수</h5>
+                    <p class="card-text display-4">{{ total_accidents }}건</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">사고유형 분포</h5>
+                    <ul class="list-unstyled">
+                        {% for type, count in accident_types.items() %}
+                        <li>{{ type }}: {{ count }}건</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">운행 차량</h5>
+                    <ul class="list-unstyled">
+                        {% for vehicle, count in vehicles.items() %}
+                        <li>{{ vehicle }}: {{ count }}건</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="mb-3">사고 내역</h3>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>사고번호</th>
+                    <th>사고일시</th>
+                    <th>차량번호</th>
+                    <th>사고유형</th>
+                    <th>사고장소</th>
+                    <th>관리</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for accident in accidents %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('view_accident', accident_id=accident['사고번호']) }}" class="text-decoration-none">
+                            {{ accident['사고번호'] }}
+                        </a>
+                    </td>
+                    <td>{{ accident['사고일시'] }}</td>
+                    <td>{{ accident['차량번호'] }}</td>
+                    <td>{{ accident['사고유형'] }}</td>
+                    <td>{{ accident['사고장소'] }}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{{ url_for('view_accident', accident_id=accident['사고번호']) }}" class="btn btn-info btn-sm">상세</a>
+                            <a href="{{ url_for('edit_accident', accident_id=accident['사고번호']) }}" class="btn btn-warning btn-sm">수정</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        해당 운전자의 사고 내역이 없습니다.
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 
