@@ -13,8 +13,8 @@
 
 1. 저장소 클론
 ```bash
-git clone [repository-url]
-cd [repository-name]
+git clone https://github.com/ezhongkim/caracc.git
+cd caracc
 ```
 
 2. 가상환경 생성 및 활성화
@@ -52,4 +52,4 @@ python app.py
 
 ## 라이선스
 
-이 프로젝트는 MIT 라이선스를 따릅니다. 
+이 프로젝트는 MIT 라이선스를 따릅니다.
